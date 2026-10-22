@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Speech to Text</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      </span>
+      <div>
+        <h1>Speech to Text</h1>
+        <p class="muted small">Real-time multilingual transcription · Hindi + English</p>
+      </div>
+    </div>
+    <span id="engineStatus" class="pill">Checking…</span>
+  </header>
+
+  <main class="container">
+    <!-- Live recorder -->
+    <section class="card recorder" aria-labelledby="recorderTitle">
+      <div class="card-head">
+        <h2 id="recorderTitle">Live transcription</h2>
+        <div class="controls-inline">
+          <label class="field-inline">
+            <span>Engine</span>
+            <select id="engine">
+              <option value="gemini">Gemini Live (server)</option>
+              <option value="browser">Browser Web Speech</option>
+            </select>
+          </label>
+          <label class="field-inline">
+            <span>Language</span>
+            <select id="language">
+              <option value="hi-en">Hindi + English (Hinglish)</option>
+              <option value="auto">Auto-detect</option>
+              <option value="en">English</option>
+              <option value="hi">Hindi</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="record-row">
+        <button id="recordBtn" class="record-btn" type="button" aria-pressed="false">
+          <span class="record-dot" aria-hidden="true"></span>
+          <span id="recordLabel">Start recording</span>
+        </button>
+        <div class="meter" aria-hidden="true"><div id="meterFill" class="meter-fill"></div></div>
+        <span id="timer" class="timer">00:00</span>
+      </div>
+
+      <label class="sr-only" for="transcript">Transcript</label>
+      <textarea id="transcript" class="transcript" rows="6" placeholder="Press Start and speak. For example: “Kal meeting hai at 10 AM, please sab log time pe aana.”"></textarea>
+      <p id="interim" class="interim" aria-live="polite"></p>
+
+      <div class="save-row">
+        <input id="titleInput" type="text" maxlength="200" placeholder="Title (optional — defaults to the first line)" />
+        <div class="btn-group">
+          <button id="speakLiveBtn" class="btn ghost" type="button">Speak</button>
+          <button id="copyBtn" class="btn ghost" type="button">Copy</button>
+          <button id="clearBtn" class="btn ghost" type="button">Clear</button>
+          <button id="saveBtn" class="btn primary" type="button">Save transcription</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats" aria-label="Statistics">
+      <div class="stat"><span class="stat-label">Transcriptions</span><span id="statTotal" class="stat-value">–</span></div>
+      <div class="stat"><span class="stat-label">Words transcribed</span><span id="statWords" class="stat-value">–</span></div>
+      <div class="stat"><span class="stat-label">Minutes recorded</span><span id="statMinutes" class="stat-value">–</span></div>
+    </section>
+
+    <!-- History dashboard -->
+    <section class="card" aria-labelledby="historyTitle">
+      <div class="card-head">
+        <h2 id="historyTitle">Transcription history</h2>
+        <input id="search" type="search" placeholder="Search title or text…" aria-label="Search transcriptions" />
+      </div>
+      <ul id="historyList" class="history"></ul>
+      <p id="emptyState" class="empty" hidden>No transcriptions yet. Record something and press <strong>Save</strong>.</p>
+      <nav class="pager" aria-label="Pagination">
+        <button id="prevPage" class="btn ghost" type="button">‹ Prev</button>
+        <span id="pageInfo" class="muted small"></span>
+        <button id="nextPage" class="btn ghost" type="button">Next ›</button>
+      </nav>
+    </section>
+  </main>
+
+  <!-- Edit dialog -->
+  <dialog id="editDialog">
+    <form id="editForm" method="dialog">
+      <h3>Edit transcription</h3>
+      <label class="field">Title<input id="editTitle" type="text" maxlength="200" required /></label>
+      <label class="field">Language
+        <select id="editLanguage">
+          <option value="hi-en">Hindi + English</option>
+          <option value="auto">Auto-detect</option>
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+        </select>
+      </label>
+      <label class="field">Text<textarea id="editContent" rows="8" required></textarea></label>
+      <p id="editMeta" class="muted small"></p>
+      <div class="dialog-actions">
+        <button class="btn ghost" type="button" value="cancel" id="editCancel">Cancel</button>
+        <button class="btn primary" type="submit" value="save">Save changes</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Delete confirm dialog -->
+  <dialog id="deleteDialog">
+    <form method="dialog">
+      <h3>Delete transcription?</h3>
+      <p id="deleteText" class="muted"></p>
+      <div class="dialog-actions">
+        <button class="btn ghost" value="cancel">Cancel</button>
+        <button class="btn danger" value="confirm">Delete</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "speech-to-text",
+  "version": "1.0.0",
+  "description": "Real-time multilingual (Hindi + English) speech-to-text with Gemini Live, PostgreSQL history and a CRUD dashboard",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "db:init": "node src/scripts/init-db.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@google/genai": "^2.30.0",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "pg": "^8.23.1",
+    "ws": "^8.22.0"
+  }
+}
