@@ -3,6 +3,7 @@
 // handlers: onText(delta) for final text, onTurn() at the end of an utterance, onInterim(text), onLevel(0..1), onReady(info), onError(message)
 
 import { backendUrl } from './api.js';
+import { FinalTextTracker } from './speech-dedupe.js';
 
 const noop = () => {};
 
@@ -97,7 +98,9 @@ class GeminiLiveEngine {
   }
 }
 
-const BROWSER_LANG = { 'hi-en': 'en-IN', en: 'en-US', hi: 'hi-IN', auto: navigator.language || 'en-IN' };
+const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+const BROWSER_LANG ={ 'hi-en': 'en-IN', en: 'en-US', hi: 'hi-IN', auto: navigator.language || 'en-IN' };
 
 /** Fallback using the browser's built-in SpeechRecognition (Chrome / Edge). */
 class BrowserSpeechEngine {
@@ -116,16 +119,15 @@ class BrowserSpeechEngine {
 
     const rec = new Recognition();
     rec.lang = BROWSER_LANG[language] ?? 'en-IN';
-    rec.continuous = true;
+    // Mobile continuous mode repeats earlier results; one utterance per session (auto-restarted) avoids it.
+    rec.continuous = !IS_MOBILE;
     rec.interimResults = true;
 
+    const tracker = new FinalTextTracker();
+    rec.onstart = () => tracker.reset();
     rec.onresult = (event) => {
-      let interim = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        if (result.isFinal) this.h.onText(`${result[0].transcript.trim()} `);
-        else interim += result[0].transcript;
-      }
+      const { fresh, interim } = tracker.update(event.results);
+      if (fresh) this.h.onText(`${fresh} `);
       this.h.onInterim(interim);
       this.h.onLevel(interim ? 0.25 : 0);
     };
