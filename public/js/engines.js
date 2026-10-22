@@ -2,7 +2,16 @@
 //   const engine = createEngine(kind, handlers); await engine.start(language); await engine.stop();
 // handlers: onText(delta) for final text, onTurn() at the end of an utterance, onInterim(text), onLevel(0..1), onReady(info), onError(message)
 
+import { backendUrl } from './api.js';
+
 const noop = () => {};
+
+function websocketUrl() {
+  const base = new URL(backendUrl || location.origin);
+  base.protocol = base.protocol === 'https:' ? 'wss:' : 'ws:';
+  base.pathname = '/ws/transcribe';
+  return base.href;
+}
 
 /** Streams 16 kHz PCM16 microphone audio to our server, which relays it to Gemini Live. */
 class GeminiLiveEngine {
@@ -16,8 +25,7 @@ class GeminiLiveEngine {
       audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
     });
 
-    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-    const ws = new WebSocket(`${proto}://${location.host}/ws/transcribe`);
+    const ws = new WebSocket(websocketUrl());
     ws.binaryType = 'arraybuffer';
     this.ws = ws;
     await new Promise((resolve, reject) => {

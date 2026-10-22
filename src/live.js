@@ -9,6 +9,7 @@
 import { GoogleGenAI, Modality } from '@google/genai';
 import { WebSocketServer } from 'ws';
 import { config } from './config.js';
+import { isAllowedOrigin } from './cors.js';
 
 const LANGUAGE_HINTS = {
   auto: 'The speaker may use any language, and may mix languages within one sentence.',
@@ -159,7 +160,13 @@ class LiveBridge {
 }
 
 export function attachLiveTranscription(server) {
-  const wss = new WebSocketServer({ server, path: '/ws/transcribe', maxPayload: 1024 * 1024 });
+  const wss = new WebSocketServer({
+    server,
+    path: '/ws/transcribe',
+    maxPayload: 1024 * 1024,
+    // Stops other websites from using this server (and its Gemini key) from a visitor's browser.
+    verifyClient: ({ origin, req }) => isAllowedOrigin(origin, req.headers.host),
+  });
   wss.on('connection', (ws) => new LiveBridge(ws));
   return wss;
 }

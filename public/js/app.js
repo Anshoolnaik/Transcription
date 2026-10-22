@@ -335,10 +335,14 @@ el.editCancel.addEventListener('click', () => el.editDialog.close());
 
 // ---------- init ----------
 (async function init() {
+  // Free-tier hosts sleep when idle; the first request can take up to a minute.
+  const wakeTimer = setTimeout(() => setStatus('Waking up server… (up to a minute)', 'warn'), 3000);
   try {
     state.config = await api.config();
   } catch {
     setStatus('Server unreachable', 'warn');
+  } finally {
+    clearTimeout(wakeTimer);
   }
   // Without a Gemini key, default to the browser engine so the app still works.
   if (!state.config.geminiConfigured && browserSpeechSupported()) el.engine.value = 'browser';

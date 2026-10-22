@@ -5,12 +5,14 @@ import express from 'express';
 import { config } from './config.js';
 import { initSchema } from './db.js';
 import { api } from './routes.js';
+import { cors } from './cors.js';
 import { attachLiveTranscription } from './live.js';
 
 const publicDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 
 const app = express();
-app.use('/api', api);
+app.set('trust proxy', 1); // behind Render's proxy
+app.use('/api', cors, api);
 app.use(express.static(publicDir));
 
 const server = http.createServer(app);

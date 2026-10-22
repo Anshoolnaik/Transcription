@@ -1,6 +1,8 @@
 // Thin client for the REST API.
+export const backendUrl = window.APP_CONFIG?.backendUrl ?? '';
+
 async function request(path, options = {}) {
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`${backendUrl}/api${path}`, {
     headers: options.body ? { 'Content-Type': 'application/json' } : undefined,
     ...options,
     body: options.body ? JSON.stringify(options.body) : undefined,

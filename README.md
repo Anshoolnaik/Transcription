@@ -64,6 +64,27 @@ docker run -d --name stt-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=speech_
 | `npm run db:init` | Apply [db/schema.sql](db/schema.sql) without starting the server |
 | `npm test` | Unit tests (validation and the PCM resampler) |
 
+## Deployment: frontend on Vercel, backend on Render
+
+The frontend in `public/` is plain static files. The backend serves the REST API and the transcription WebSocket. Both are deployed from this repo.
+
+**1. Backend on Render**
+
+1. In Render, choose **New → Blueprint**, pick this repo, and Render reads [render.yaml](render.yaml). Or create a **Web Service** by hand with build command `npm ci` and start command `npm start`.
+2. Set the secret environment variables:
+   - `DATABASE_URL`: your PostgreSQL connection string (Neon)
+   - `GEMINI_API_KEY`: your Gemini key
+   - `ALLOWED_ORIGINS`: your Vercel URL, for example `https://speech-to-text.vercel.app`. Fill this in after step 2; separate multiple URLs with commas.
+3. Deploy, then open `https://<your-service>.onrender.com/api/health`. It should return `{"ok":true}`.
+
+**2. Frontend on Vercel**
+
+1. In [public/config.js](public/config.js), set `RENDER_URL` to your Render URL, then commit and push.
+2. In Vercel, choose **Add New → Project**, import this repo, and set **Root Directory** to `public`. Use Framework Preset **Other** and leave the build command empty.
+3. Deploy, then put the resulting `https://….vercel.app` URL into `ALLOWED_ORIGINS` on Render. Render redeploys automatically.
+
+The backend only accepts browser requests and WebSocket connections from its own origin and from `ALLOWED_ORIGINS`, so other websites can't use your Gemini key through it. On Render's free plan the service sleeps after about 15 minutes idle. The first visit afterwards takes up to a minute, and the page shows "Waking up server…" while it waits.
+
 ## Database schema
 
 ```sql
